@@ -21,8 +21,14 @@ import {
 } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { calculateTermDeposit } from "@/lib/utils";
+import { useState } from "react";
 
 function App() {
+  const [results, setResults] = useState<{
+    finalBalance: number;
+    totalInterestEarned: number;
+  }>("");
+
   const validateSchema = Yup.object().shape({
     depositAmount: Yup.number()
       .moreThan(0, "The deposit amount must be at least $1000.")
@@ -51,12 +57,12 @@ function App() {
               depositAmount: 10000,
               interestRate: 1.1,
               investmentTerm: 3,
-              interestPaid: "monthly" as const,
+              interestPaid: "at-maturity" as const,
             }}
             validationSchema={validateSchema}
             onSubmit={(values, { setSubmitting }) => {
               setTimeout(() => {
-                alert(calculateTermDeposit(values));
+                setResults(calculateTermDeposit(values));
                 setSubmitting(false);
               }, 400);
             }}
@@ -154,6 +160,19 @@ function App() {
             )}
           </Formik>
         </Card>
+        {results ? (
+          <div className="py-8 text-left">
+            <p>
+              <strong>Final balance:</strong> ${results.finalBalance}
+            </p>
+            <p>
+              <strong>Total interest earned:</strong> $
+              {results.totalInterestEarned}
+            </p>
+          </div>
+        ) : (
+          <div>Test</div>
+        )}
       </section>
     </main>
   );

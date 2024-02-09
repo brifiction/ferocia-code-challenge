@@ -12,36 +12,72 @@ type TermDepositFormSchema = {
   interestPaid: "monthly" | "quarterly" | "annually" | "at-maturity";
 };
 
-function calculateInterestRateInPercentage(interestRate: number) {
+/**
+ * Convert interest rate as percentage.
+ *
+ * @param interestRate
+ * @returns
+ */
+export function convertInterestRateToPercentage(interestRate: number) {
   return interestRate / 100;
 }
 
-function calculateTotalAmount(
-  depositAmount: number,
-  interestRate: number,
-  interestPaid: "monthly" | "quarterly" | "annually" | "at-maturity",
-  investmentTerm: number
+/**
+ * Convert interest paid to a number, based on the base year value (1 = 1 year, 2 = 2 years, and so on).
+ *
+ * @param interestPaid
+ * @returns
+ */
+export function convertInterestPaid(
+  interestPaid: "monthly" | "quarterly" | "annually" | "at-maturity"
 ) {
   switch (interestPaid) {
     case "monthly":
-      interestRate = interestRate / 12;
-      break;
+      return 12;
     case "quarterly":
-      interestRate = interestRate / 4;
-      break;
+      return 4;
     case "annually":
     case "at-maturity":
+      return 1;
+    default:
+      throw new Error("Invalid interest paid option");
+  }
+}
+
+export function roundToTwoDecimalPlaces(value: number) {
+  return Math.round(value * 100) / 100;
+}
+
+export function calculateFinalBalance(
+  values: TermDepositFormSchema,
+  interestRatePercentage: number,
+  convertedInterestPaid: number
+) {
+  const { depositAmount, investmentTerm, interestPaid } = values;
+
+  // Calculate the final balance, at the end of investment term.
+  let totalAmount;
+  switch (interestPaid) {
+    case "at-maturity":
+      totalAmount =
+        depositAmount *
+        Math.pow(
+          1 + interestRatePercentage * investmentTerm,
+          convertedInterestPaid
+        );
+      break;
+    default:
+      totalAmount =
+        depositAmount *
+        Math.pow(
+          1 + interestRatePercentage / convertedInterestPaid,
+          investmentTerm * convertedInterestPaid
+        );
       break;
   }
 
-  const totalAmount =
-    depositAmount *
-    Math.pow(
-      1 + calculateInterestRateInPercentage(interestRate),
-      investmentTerm
-    );
-
-  return Math.ceil(totalAmount);
+  // Round the total amount to two decimal places
+  return roundToTwoDecimalPlaces(totalAmount);
 }
 
 /**
@@ -51,23 +87,24 @@ function calculateTotalAmount(
  * @returns
  */
 export function calculateTermDeposit(values: TermDepositFormSchema) {
-  // Calculate the total amount at the end of the term
-  const totalAmount = calculateTotalAmount(
-    values.depositAmount,
-    values.interestRate,
-    values.interestPaid,
-    values.investmentTerm
+  const { depositAmount, interestRate, interestPaid } = values;
+
+  const interestRatePercentage = convertInterestRateToPercentage(interestRate);
+
+  const convertedInterestPaid = convertInterestPaid(interestPaid);
+
+  // Calculate the final balance, at the end of investment term.
+  const totalAmount = calculateFinalBalance(
+    values,
+    interestRatePercentage,
+    convertedInterestPaid
   );
 
   // Calculate the interest earned
-  const interestEarned = totalAmount - values.depositAmount;
+  const interestEarned = totalAmount - depositAmount;
 
-  return JSON.stringify(
-    {
-      finalBalance: values.depositAmount + interestEarned,
-      totalInterestEarned: interestEarned,
-    },
-    null,
-    2
-  );
+  return {
+    finalBalance: Math.round(totalAmount),
+    totalInterestEarned: Math.round(interestEarned),
+  };
 }
