@@ -27,7 +27,7 @@ function App() {
   const [results, setResults] = useState<{
     finalBalance: number;
     totalInterestEarned: number;
-  }>("");
+  }>({ finalBalance: 0, totalInterestEarned: 0 });
 
   const validateSchema = Yup.object().shape({
     depositAmount: Yup.number()
@@ -49,7 +49,7 @@ function App() {
   });
 
   return (
-    <main className="flex h-screen items-center justify-center">
+    <main className="flex h-screen items-center justify-center bg-transparent">
       <section>
         <Card className="w-[350px]">
           <Formik
@@ -91,7 +91,9 @@ function App() {
                         className="text-xs text-red-400"
                       />
 
-                      <Label htmlFor="interestRate">Interest rate (%)</Label>
+                      <Label htmlFor="interestRate">
+                        Interest rate (% p.a.)
+                      </Label>
                       <Input
                         type="number"
                         name="interestRate"
@@ -160,8 +162,8 @@ function App() {
             )}
           </Formik>
         </Card>
-        {results ? (
-          <div className="py-8 text-left">
+        <div className="py-8 my-4 text-left text-xl bg-slate-200 rounded-lg">
+          <div className="p-4">
             <p>
               <strong>Final balance:</strong> ${results.finalBalance}
             </p>
@@ -170,9 +172,7 @@ function App() {
               {results.totalInterestEarned}
             </p>
           </div>
-        ) : (
-          <div>Test</div>
-        )}
+        </div>
       </section>
     </main>
   );
