@@ -25,10 +25,12 @@ import { calculateTermDeposit } from "@/lib/utils";
 function App() {
   const validateSchema = Yup.object().shape({
     depositAmount: Yup.number()
-      .moreThan(0, "The deposit amount must be at least $1.")
+      .moreThan(0, "The deposit amount must be at least $1000.")
       .required("Please enter your deposit amount."),
     interestRate: Yup.number()
-      .moreThan(0, "The interest rate must be at least 0.01%.")
+      .positive(
+        "The interest rate must be a positive decimal number, such as 0.00% or above."
+      )
       .required("Please enter your interest rate."),
     investmentTerm: Yup.number()
       .moreThan(0, "The investment term must be at least 1 year.")
@@ -75,7 +77,7 @@ function App() {
                         type="number"
                         name="depositAmount"
                         step="any"
-                        min={1}
+                        min={1000}
                       />
                       <ErrorMessage
                         name="depositAmount"
@@ -87,8 +89,8 @@ function App() {
                       <Input
                         type="number"
                         name="interestRate"
-                        step=".01"
-                        min={0.01}
+                        step=".1"
+                        min={0.1}
                       />
                       <ErrorMessage
                         name="interestRate"
